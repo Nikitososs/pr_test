@@ -19,8 +19,9 @@ Pool_allocator *pool_init(size_t block_size, size_t block_count) {
   }
 
   pool_allocator->freeList = NULL;
+
   for (size_t i = 0; i < block_count; i++) {
-    uint8_t *curr_block = pool_allocator->data + i * real_block_size;
+    void *curr_block = pool_allocator->data + i * real_block_size;
     Block *block = (Block *)curr_block;
     block->next = pool_allocator->freeList;
     pool_allocator->freeList = block;
@@ -37,11 +38,11 @@ void *pool_alloc(Pool_allocator *pool_allocator) {
   Block *block = pool_allocator->freeList;
   pool_allocator->freeList = block->next;
 
-  return (void *)((uint8_t *)block + sizeof(Block));
+  return (void *)((void *)block + sizeof(Block));
 }
 
 void pool_free(Pool_allocator *pool_allocator, void *ptr) {
-  Block *block = (Block *)((uint8_t *)ptr - sizeof(Block));
+  Block *block = (Block *)((void *)ptr - sizeof(Block));
   block->next = pool_allocator->freeList;
   pool_allocator->freeList = block;
 }
@@ -50,7 +51,6 @@ void pool_dest(Pool_allocator *pool_allocator) {
   if (pool_allocator == NULL) {
     return;
   }
-
   free(pool_allocator->data);
   free(pool_allocator);
 }

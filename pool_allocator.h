@@ -11,7 +11,7 @@ typedef struct {
   Block *freeList;
   size_t block_size;
   size_t block_count;
-  uint8_t *data;
+  void *data;
 } Pool_allocator;
 
 Pool_allocator *pool_init(size_t block_size, size_t block_count);
