@@ -32,7 +32,7 @@ hash_table_test: hash_table_test.o hash_table.a pool_allocator.a linear_allocato
 	gcc -g -o hash_table_test hash_table_test.o hash_table.a pool_allocator.a linear_allocator.a
 #--- 	
 
-test: clear hash_table_test
+test: hash_table_test
 	@for test in $(shell find . -maxdepth 1 -type f -regex '.*_test$$'); do \
 		echo "$$test"; \
 		./$$test || exit 1; \
