@@ -30,7 +30,7 @@ size_t hash(const char *key, size_t capacity);
 int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator,
                    hash_table_t *table);
 
-int hashtable_insert(hash_table_t *table, const char *key, void *value);
+int hashtable_insert(hash_table_t *table, const char *key, const void *value);
 void *hashtable_get(hash_table_t *table, const char *key);
 int hashtable_delete(hash_table_t *table, const char *key);
 void hashtable_free(hash_table_t *table);

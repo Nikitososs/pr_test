@@ -20,14 +20,14 @@ static void default_free(void *head, void *ptr) {
   free(ptr);
 }
 
-int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator,
-                   hash_table_t *table) {
+int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator, hash_table_t *table) {
   if (!table || capacity == 0 || value_size == 0)
     return HT_ALLOC_FAIL;
 
   table->capacity = capacity;
   table->count = 0;
   table->value_size = value_size;
+
   if (allocator) {
     table->allocator = *allocator;
   } else {
@@ -36,8 +36,7 @@ int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator,
     table->allocator.free = default_free;
   }
 
-  table->items = (ht_item *)table->allocator.alloc(table->allocator.head,
-                                                   capacity * sizeof(ht_item));
+  table->items = malloc(capacity * sizeof(ht_item));
   if (!table->items)
     return HT_ALLOC_FAIL;
 
@@ -51,7 +50,7 @@ int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator,
   return HT_OK;
 }
 
-int hashtable_insert(hash_table_t *table, const char *key, void *value) {
+int hashtable_insert(hash_table_t *table, const char *key, const void *value) {
   if (!table || !key || !value)
     return HT_ALLOC_FAIL;
 
@@ -64,8 +63,7 @@ int hashtable_insert(hash_table_t *table, const char *key, void *value) {
     if (!item->is_occupied || item->is_deleted) {
       item->key = (char *)key;
 
-      void *val_ptr =
-          table->allocator.alloc(table->allocator.head, table->value_size);
+      void *val_ptr = table->allocator.alloc(table->allocator.head, table->value_size);
       if (!val_ptr)
         return HT_ALLOC_FAIL;
 
@@ -77,8 +75,7 @@ int hashtable_insert(hash_table_t *table, const char *key, void *value) {
 
       table->count++;
       return HT_OK;
-    } else if (item->is_occupied && !item->is_deleted &&
-               strcmp(item->key, key) == 0) {
+    } else if (item->is_occupied && !item->is_deleted && strcmp(item->key, key) == 0) {
       memcpy(item->value, value, table->value_size);
       return HT_OK;
     }
@@ -100,8 +97,7 @@ void *hashtable_get(hash_table_t *table, const char *key) {
   while (steps < table->capacity) {
     ht_item *item = &table->items[hash];
 
-    if (item->is_occupied && !item->is_deleted && item->key &&
-        strcmp(item->key, key) == 0) {
+    if (item->is_occupied && !item->is_deleted && item->key && strcmp(item->key, key) == 0) {
       return item->value;
     }
     if (!item->is_occupied && !item->is_deleted) {
@@ -125,8 +121,7 @@ int hashtable_delete(hash_table_t *table, const char *key) {
   while (steps < table->capacity) {
     ht_item *item = &table->items[hash];
 
-    if (item->is_occupied && !item->is_deleted && item->key &&
-        strcmp(item->key, key) == 0) {
+    if (item->is_occupied && !item->is_deleted && item->key && strcmp(item->key, key) == 0) {
       if (item->value) {
         table->allocator.free(table->allocator.head, item->value);
         item->value = NULL;
@@ -156,15 +151,14 @@ void hashtable_free(hash_table_t *table) {
     return;
 
   for (size_t i = 0; i < table->capacity; i++) {
-    if (table->items[i].is_occupied && !table->items[i].is_deleted &&
-        table->items[i].value) {
+    if (table->items[i].is_occupied && !table->items[i].is_deleted && table->items[i].value) {
       table->allocator.free(table->allocator.head, table->items[i].value);
       table->items[i].value = NULL;
     }
   }
 
   if (table->items) {
-    table->allocator.free(table->allocator.head, table->items);
+    free(table->items);
     table->items = NULL;
   }
 
