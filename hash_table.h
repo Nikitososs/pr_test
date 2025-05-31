@@ -16,7 +16,6 @@ typedef struct {
   void *value;
   int is_occupied;
   int is_deleted;
-  void *raw_ptr;
 } ht_item;
 
 typedef struct {

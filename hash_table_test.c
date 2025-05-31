@@ -1,6 +1,9 @@
 #include "hash_table.h"
+#include "linear_allocator.h"
 #include "pool_allocator.h"
 #include <assert.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -8,18 +11,19 @@ typedef struct {
   Pool_allocator *pool;
 } PoolAllocatorWrapper;
 
-static void *pool_alloc_wrapper(void *head, size_t sz) {
-  (void)sz;
+void *pool_alloc_wrapper(void *head, size_t sz) {
   PoolAllocatorWrapper *wrapper = (PoolAllocatorWrapper *)head;
   return pool_alloc(wrapper->pool);
 }
 
-static void pool_free_wrapper(void *head, void *ptr) {
+void pool_free_wrapper(void *head, void *ptr) {
   PoolAllocatorWrapper *wrapper = (PoolAllocatorWrapper *)head;
   pool_free(wrapper->pool, ptr);
 }
 
-static void insert_and_get_test() {
+void linear_free_wrapper(void *head, void *ptr) {}
+
+void insert_and_get_test() {
   hash_table_t table;
   int ret = hashtable_init(3, sizeof(int), NULL, &table);
 
@@ -51,7 +55,7 @@ static void insert_and_get_test() {
   hashtable_free(&table);
 }
 
-static void overflow_and_update_test() {
+void overflow_and_update_test() {
   hash_table_t table;
   int ret = hashtable_init(2, sizeof(int), NULL, &table);
 
@@ -75,7 +79,7 @@ static void overflow_and_update_test() {
   hashtable_free(&table);
 }
 
-static void deletion_test() {
+void deletion_test() {
   hash_table_t table;
   int ret = hashtable_init(2, sizeof(int), NULL, &table);
   assert(ret == HT_OK);
@@ -100,7 +104,7 @@ static void deletion_test() {
   hashtable_free(&table);
 }
 
-static void test_invalid_inputs() {
+void test_invalid_inputs() {
   hash_table_t table;
   int ret = hashtable_init(0, sizeof(int), NULL, &table);
   assert(ret == HT_ALLOC_FAIL);
@@ -127,7 +131,7 @@ static void test_invalid_inputs() {
   assert(ret == HT_ALLOC_FAIL);
 }
 
-static void test_custom_allocator() {
+void test_pool_allocator() {
   hash_table_t table;
 
   Pool_allocator *pool = pool_init(sizeof(ht_item), 10);
@@ -142,13 +146,13 @@ static void test_custom_allocator() {
   assert(ret == HT_OK);
 
   int v = 777;
-  ret = hashtable_insert(&table, "key", &v);
+  ret = hashtable_insert(&table, "key1", &v);
   assert(ret == HT_OK);
 
-  int *res = (int *)hashtable_get(&table, "key");
+  int *res = (int *)hashtable_get(&table, "key1");
   assert(res && *res == 777);
 
-  ret = hashtable_delete(&table, "key");
+  ret = hashtable_delete(&table, "key1");
   assert(ret == HT_OK);
 
   hashtable_free(&table);
@@ -156,12 +160,39 @@ static void test_custom_allocator() {
   pool_dest(pool);
 }
 
+void test_linear_allocator() {
+  hash_table_t table;
+
+  size_t volume = 1024;
+  Linear_allocator allocator = linear_init(volume);
+
+  allocator_t custom_alloc = {.head = &allocator,
+                              .alloc = (void *(*)(void *, size_t))linear_alloc,
+                              .free = linear_free_wrapper};
+
+  int ret = hashtable_init(5, sizeof(int), &custom_alloc, &table);
+  assert(ret == HT_OK);
+
+  int v = 42;
+  ret = hashtable_insert(&table, "key1", &v);
+  assert(ret == HT_OK);
+
+  int *res = hashtable_get(&table, "key1");
+  assert(res && *res == 42);
+
+  ret = hashtable_delete(&table, "key1");
+  assert(ret == HT_OK);
+
+  hashtable_free(&table);
+  linear_free(&allocator);
+}
+
 int main() {
   insert_and_get_test();
   overflow_and_update_test();
   deletion_test();
   test_invalid_inputs();
-  test_custom_allocator();
-
+  test_pool_allocator();
+  test_linear_allocator();
   return 0;
 }
