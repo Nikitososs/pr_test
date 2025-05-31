@@ -23,7 +23,7 @@ typedef struct {
   size_t count;
   size_t value_size;
   allocator_t allocator;
-  ht_item *items;
+  ht_item **items;
 } hash_table_t;
 
 size_t hash(const char *key, size_t capacity);

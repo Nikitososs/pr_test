@@ -29,24 +29,17 @@ int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator,
   table->count = 0;
   table->value_size = value_size;
 
-  if (allocator) {
+  if (allocator)
     table->allocator = *allocator;
-  } else {
+  else {
     table->allocator.head = NULL;
     table->allocator.alloc = default_alloc;
     table->allocator.free = default_free;
   }
 
-  table->items = malloc(capacity * sizeof(ht_item));
+  table->items = calloc(capacity, sizeof(ht_item *));
   if (!table->items)
     return HT_ALLOC_FAIL;
-
-  for (size_t i = 0; i < capacity; i++) {
-    table->items[i].key = NULL;
-    table->items[i].value = NULL;
-    table->items[i].is_occupied = 0;
-    table->items[i].is_deleted = 0;
-  }
 
   return HT_OK;
 }
@@ -59,26 +52,34 @@ int hashtable_insert(hash_table_t *table, const char *key, const void *value) {
   size_t steps = 0;
 
   while (steps < table->capacity) {
-    ht_item *item = &table->items[hash];
+    ht_item *item = table->items[hash];
 
-    if (!item->is_occupied || item->is_deleted) {
-      item->key = (char *)key;
-
-      void *val_ptr =
-          table->allocator.alloc(table->allocator.head, table->value_size);
-      if (!val_ptr)
+    if (!item || item->is_deleted) {
+      void *block = table->allocator.alloc(table->allocator.head,
+                                           sizeof(ht_item) + table->value_size);
+      if (!block)
         return HT_ALLOC_FAIL;
 
-      memcpy(val_ptr, value, table->value_size);
+      ht_item *new_item = (ht_item *)block;
 
-      item->value = val_ptr;
-      item->is_occupied = 1;
-      item->is_deleted = 0;
+      size_t key_len = strlen(key) + 1;
+      char *key_copy = table->allocator.alloc(table->allocator.head, key_len);
+      if (!key_copy) {
+        table->allocator.free(table->allocator.head, block);
+        return HT_ALLOC_FAIL;
+      }
+      memcpy(key_copy, key, key_len);
 
+      new_item->key = key_copy;
+      new_item->value = (char *)block + sizeof(ht_item);
+      memcpy(new_item->value, value, table->value_size);
+      new_item->is_occupied = 1;
+      new_item->is_deleted = 0;
+
+      table->items[hash] = new_item;
       table->count++;
       return HT_OK;
-    } else if (item->is_occupied && !item->is_deleted &&
-               strcmp(item->key, key) == 0) {
+    } else if (!item->is_deleted && strcmp(item->key, key) == 0) {
       memcpy(item->value, value, table->value_size);
       return HT_OK;
     }
@@ -98,15 +99,15 @@ void *hashtable_get(hash_table_t *table, const char *key) {
   size_t steps = 0;
 
   while (steps < table->capacity) {
-    ht_item *item = &table->items[hash];
+    ht_item *item = table->items[hash];
 
-    if (item->is_occupied && !item->is_deleted && item->key &&
+    if (item && item->is_occupied && !item->is_deleted &&
         strcmp(item->key, key) == 0) {
       return item->value;
     }
-    if (!item->is_occupied && !item->is_deleted) {
+
+    if (!item)
       return NULL;
-    }
 
     hash = (hash + 1) % table->capacity;
     steps++;
@@ -123,26 +124,19 @@ int hashtable_delete(hash_table_t *table, const char *key) {
   size_t steps = 0;
 
   while (steps < table->capacity) {
-    ht_item *item = &table->items[hash];
+    ht_item *item = table->items[hash];
 
-    if (item->is_occupied && !item->is_deleted && item->key &&
+    if (item && item->is_occupied && !item->is_deleted &&
         strcmp(item->key, key) == 0) {
-      if (item->value) {
-        table->allocator.free(table->allocator.head, item->value);
-        item->value = NULL;
-      }
-
-      item->key = NULL;
-      item->is_deleted = 1;
-      item->is_occupied = 0;
-
+      table->allocator.free(table->allocator.head, item->key);
+      table->allocator.free(table->allocator.head, item);
+      table->items[hash] = NULL;
       table->count--;
       return HT_OK;
     }
 
-    if (!item->is_occupied && !item->is_deleted) {
+    if (!item)
       return HT_NOT_FOUND;
-    }
 
     hash = (hash + 1) % table->capacity;
     steps++;
@@ -156,19 +150,14 @@ void hashtable_free(hash_table_t *table) {
     return;
 
   for (size_t i = 0; i < table->capacity; i++) {
-    if (table->items[i].is_occupied && !table->items[i].is_deleted &&
-        table->items[i].value) {
-      table->allocator.free(table->allocator.head, table->items[i].value);
-      table->items[i].value = NULL;
+    if (table->items[i]) {
+      table->allocator.free(table->allocator.head, table->items[i]->key);
+      table->allocator.free(table->allocator.head, table->items[i]);
     }
   }
 
-  if (table->items) {
-    free(table->items);
-    table->items = NULL;
-  }
-
+  free(table->items);
+  table->items = NULL;
   table->capacity = 0;
   table->count = 0;
-  table->value_size = 0;
 }

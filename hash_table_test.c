@@ -1,6 +1,6 @@
+#include "allocators/linear_allocator.h"
+#include "allocators/pool_allocator.h"
 #include "hash_table.h"
-#include "linear_allocator.h"
-#include "pool_allocator.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -134,7 +134,7 @@ void test_invalid_inputs() {
 void test_pool_allocator() {
   hash_table_t table;
 
-  Pool_allocator *pool = pool_init(sizeof(ht_item), 10);
+  Pool_allocator *pool = pool_init(sizeof(ht_item) + sizeof(int), 10);
   assert(pool != NULL);
 
   PoolAllocatorWrapper wrapper = {pool};
