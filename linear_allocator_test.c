@@ -58,7 +58,7 @@ void test_linear_free() {
 }
 
 int main() {
-  test_linear_init;
+  test_linear_init();
   test_linear_alloc();
   test_linear_reset();
   test_linear_free();
