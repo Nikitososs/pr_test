@@ -18,6 +18,17 @@ pool_allocator_test: pool_allocator_test.o pool_allocator.a
 	gcc -g -o pool_allocator_test pool_allocator_test.o pool_allocator.a 
 #--- 	
 
+#--- linear allocator
+linear_allocator.o: linear_allocator.c linear_allocator.h
+	gcc -g -c linear_allocator.c -o linear_allocator.o
+linear_allocator.a: linear_allocator.o
+	ar rc linear_allocator.a linear_allocator.o
+linear_allocator_test.o: linear_allocator_test.c
+	gcc -g -c linear_allocator_test.c -o linear_allocator_test.o
+linear_allocator_test: linear_allocator_test.o linear_allocator.a
+	gcc -g -o linear_allocator_test linear_allocator_test.o linear_allocator.a 
+#--- 
+
 #--- Hash table
 hash_table.o: hash_table.c hash_table.h
 	gcc -g -c hash_table.c -o hash_table.o
@@ -25,8 +36,8 @@ hash_table.a: hash_table.o
 	ar rc hash_table.a hash_table.o
 hash_table_test.o: hash_table_test.c
 	gcc -g -c hash_table_test.c -o hash_table_test.o
-hash_table_test: hash_table_test.o hash_table.a pool_allocator.a
-	gcc -g -o hash_table_test hash_table_test.o hash_table.a pool_allocator.a
+hash_table_test: hash_table_test.o hash_table.a pool_allocator.a linear_allocator.a
+	gcc -g -o hash_table_test hash_table_test.o hash_table.a pool_allocator.a linear_allocator.a
 #--- 	
 
 test: hash_table_test
