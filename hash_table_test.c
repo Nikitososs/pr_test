@@ -92,6 +92,40 @@ void deletion_test() {
   hashtable_free(&table);
 }
 
+void reuse_slots_test() {
+  hash_table_t table;
+  int ret = hashtable_init(2, sizeof(int), NULL, &table);
+  assert(ret == HT_OK);
+
+  int v1 = 10, v2 = 20, v3 = 30;
+
+  ret = hashtable_insert(&table, "key1", &v1);
+  assert(ret == HT_OK);
+  ret = hashtable_insert(&table, "key2", &v2);
+  assert(ret == HT_OK);
+
+  assert(table.count == 2);
+
+  ret = hashtable_delete(&table, "key1");
+  assert(ret == HT_OK);
+  assert(table.count == 1);
+
+  ret = hashtable_insert(&table, "key3", &v3);
+  assert(ret == HT_OK);
+  assert(table.count == 2);
+
+  int *res = (int *)hashtable_get(&table, "key1");
+  assert(res == NULL);
+
+  res = (int *)hashtable_get(&table, "key2");
+  assert(res && *res == 20);
+
+  res = (int *)hashtable_get(&table, "key3");
+  assert(res && *res == 30);
+
+  hashtable_free(&table);
+}
+
 void test_invalid_inputs() {
   hash_table_t table;
   int ret = hashtable_init(0, sizeof(int), NULL, &table);
@@ -181,6 +215,7 @@ int main() {
   insert_and_get_test();
   overflow_and_update_test();
   deletion_test();
+  reuse_slots_test();
   test_invalid_inputs();
   test_pool_allocator();
   test_linear_allocator();

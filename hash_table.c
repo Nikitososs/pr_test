@@ -67,7 +67,6 @@ int hashtable_insert(hash_table_t *table, const char *key, const void *value) {
       memcpy(new_item->value, value, table->value_size);
       memcpy(new_item->key, key, key_len);
 
-      new_item->is_occupied = 1;
       new_item->is_deleted = 0;
 
       table->items[hash] = new_item;
@@ -95,7 +94,7 @@ void *hashtable_get(hash_table_t *table, const char *key) {
   while (steps < table->capacity) {
     ht_item *item = table->items[hash];
 
-    if (item && item->is_occupied && !item->is_deleted &&
+    if (item && !item->is_deleted &&
         strcmp(item->key, key) == 0) {
       return item->value;
     }
@@ -120,7 +119,7 @@ int hashtable_delete(hash_table_t *table, const char *key) {
   while (steps < table->capacity) {
     ht_item *item = table->items[hash];
 
-    if (item && item->is_occupied && !item->is_deleted &&
+    if (item && !item->is_deleted &&
         strcmp(item->key, key) == 0) {
       table->allocator.free(table->allocator.head, item);
       table->items[hash] = NULL;

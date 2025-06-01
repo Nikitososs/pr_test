@@ -14,7 +14,6 @@ typedef struct {
 typedef struct {
   char *key;
   void *value;
-  int is_occupied;
   int is_deleted;
 } ht_item;
 
