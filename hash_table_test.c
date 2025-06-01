@@ -133,8 +133,9 @@ void test_invalid_inputs() {
 
 void test_pool_allocator() {
   hash_table_t table;
+  int max_key_len = 5;
 
-  Pool_allocator *pool = pool_init(sizeof(ht_item) + sizeof(int), 10);
+  Pool_allocator *pool = pool_init(sizeof(ht_item) + sizeof(int) + max_key_len, 1);
   assert(pool != NULL);
 
   PoolAllocatorWrapper wrapper = {pool};
@@ -142,7 +143,7 @@ void test_pool_allocator() {
   allocator_t custom_alloc = {
       .head = &wrapper, .alloc = pool_alloc_wrapper, .free = pool_free_wrapper};
 
-  int ret = hashtable_init(5, sizeof(int), &custom_alloc, &table);
+  int ret = hashtable_init(1, sizeof(int), &custom_alloc, &table);
   assert(ret == HT_OK);
 
   int v = 777;
@@ -163,14 +164,14 @@ void test_pool_allocator() {
 void test_linear_allocator() {
   hash_table_t table;
 
-  size_t volume = 1024;
+  size_t volume = 41;
   Linear_allocator allocator = linear_init(volume);
 
   allocator_t custom_alloc = {.head = &allocator,
                               .alloc = (void *(*)(void *, size_t))linear_alloc,
                               .free = linear_free_wrapper};
 
-  int ret = hashtable_init(5, sizeof(int), &custom_alloc, &table);
+  int ret = hashtable_init(1, sizeof(int), &custom_alloc, &table);
   assert(ret == HT_OK);
 
   int v = 42;
