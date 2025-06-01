@@ -12,11 +12,9 @@ size_t hash_func(const char *key, size_t capacity) {
 }
 
 static void *default_alloc(void *head, size_t size) {
-  (void)head;
   return malloc(size);
 }
 static void default_free(void *head, void *ptr) {
-  (void)head;
   free(ptr);
 }
 
