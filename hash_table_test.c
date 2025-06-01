@@ -7,19 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct {
-  Pool_allocator *pool;
-} PoolAllocatorWrapper;
-
-void *pool_alloc_wrapper(void *head, size_t sz) {
-  PoolAllocatorWrapper *wrapper = (PoolAllocatorWrapper *)head;
-  return pool_alloc(wrapper->pool);
-}
-
-void pool_free_wrapper(void *head, void *ptr) {
-  PoolAllocatorWrapper *wrapper = (PoolAllocatorWrapper *)head;
-  pool_free(wrapper->pool, ptr);
-}
+void *pool_alloc_wrapper(void *head, size_t sz) { return pool_alloc(head); }
 
 void linear_free_wrapper(void *head, void *ptr) {}
 
@@ -139,12 +127,11 @@ void test_pool_allocator() {
       pool_init(sizeof(ht_item) + sizeof(int) + max_key_len, 1);
   assert(pool != NULL);
 
-  PoolAllocatorWrapper wrapper = {pool};
+  allocator_t pool_allocator = {.head = pool,
+                                .alloc = pool_alloc_wrapper,
+                                .free = (void (*)(void *, void *))pool_free};
 
-  allocator_t custom_alloc = {
-      .head = &wrapper, .alloc = pool_alloc_wrapper, .free = pool_free_wrapper};
-
-  int ret = hashtable_init(1, sizeof(int), &custom_alloc, &table);
+  int ret = hashtable_init(1, sizeof(int), &pool_allocator, &table);
   assert(ret == HT_OK);
 
   int v = 777;
@@ -168,11 +155,12 @@ void test_linear_allocator() {
   size_t volume = 41;
   Linear_allocator allocator = linear_init(volume);
 
-  allocator_t custom_alloc = {.head = &allocator,
-                              .alloc = (void *(*)(void *, size_t))linear_alloc,
-                              .free = linear_free_wrapper};
+  allocator_t linear_allocator = {.head = &allocator,
+                                  .alloc =
+                                      (void *(*)(void *, size_t))linear_alloc,
+                                  .free = linear_free_wrapper};
 
-  int ret = hashtable_init(1, sizeof(int), &custom_alloc, &table);
+  int ret = hashtable_init(1, sizeof(int), &linear_allocator, &table);
   assert(ret == HT_OK);
 
   int v = 42;
