@@ -135,7 +135,8 @@ void test_pool_allocator() {
   hash_table_t table;
   int max_key_len = 5;
 
-  Pool_allocator *pool = pool_init(sizeof(ht_item) + sizeof(int) + max_key_len, 1);
+  Pool_allocator *pool =
+      pool_init(sizeof(ht_item) + sizeof(int) + max_key_len, 1);
   assert(pool != NULL);
 
   PoolAllocatorWrapper wrapper = {pool};
