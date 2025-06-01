@@ -11,12 +11,8 @@ size_t hash_func(const char *key, size_t capacity) {
   return hash % capacity;
 }
 
-static void *default_alloc(void *head, size_t size) {
-  return malloc(size);
-}
-static void default_free(void *head, void *ptr) {
-  free(ptr);
-}
+static void *default_alloc(void *head, size_t size) { return malloc(size); }
+static void default_free(void *head, void *ptr) { free(ptr); }
 
 int hashtable_init(size_t capacity, size_t value_size, allocator_t *allocator,
                    hash_table_t *table) {
@@ -94,8 +90,7 @@ void *hashtable_get(hash_table_t *table, const char *key) {
   while (steps < table->capacity) {
     ht_item *item = table->items[hash];
 
-    if (item && !item->is_deleted &&
-        strcmp(item->key, key) == 0) {
+    if (item && !item->is_deleted && strcmp(item->key, key) == 0) {
       return item->value;
     }
 
@@ -119,8 +114,7 @@ int hashtable_delete(hash_table_t *table, const char *key) {
   while (steps < table->capacity) {
     ht_item *item = table->items[hash];
 
-    if (item && !item->is_deleted &&
-        strcmp(item->key, key) == 0) {
+    if (item && !item->is_deleted && strcmp(item->key, key) == 0) {
       table->allocator.free(table->allocator.head, item);
       table->items[hash] = NULL;
       table->count--;
