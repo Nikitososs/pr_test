@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 Linear_allocator linear_init(size_t volume) {
-  void *data = malloc(sizeof(uint8_t) * volume);
+  void *data = malloc(volume);
   Linear_allocator linear_allocator = {
       .volume = volume,
       .size = 0,
@@ -19,9 +19,9 @@ void *linear_alloc(Linear_allocator *linear_allocator, size_t size) {
   if (linear_allocator->size + size > linear_allocator->volume) {
     return NULL;
   }
-  int8_t *data = &linear_allocator->data[linear_allocator->size];
+  void *ptr = linear_allocator->data + linear_allocator->size;
   linear_allocator->size += size;
-  return data;
+  return ptr;
 }
 
 void linear_reset(Linear_allocator *linear_allocator) {

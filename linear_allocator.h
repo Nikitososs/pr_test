@@ -4,7 +4,7 @@
 typedef struct {
   size_t volume;
   size_t size;
-  uint8_t *data;
+  void *data;
 } Linear_allocator;
 
 Linear_allocator linear_init(size_t volume);
