@@ -29,6 +29,17 @@ linear_allocator_test: linear_allocator_test.o linear_allocator.a
 	gcc -g -o linear_allocator_test linear_allocator_test.o linear_allocator.a 
 #--- 
 
+#--- Array list
+array_list.o: array_list.c array_list.h
+	gcc -g -c array_list.c -o array_list.o
+array_list.a: array_list.o
+	ar rc array_list.a array_list.o
+array_list_test.o: array_list_test.c
+	gcc -g -c array_list_test.c -o array_list_test.o
+array_list_test: array_list_test.o array_list.a linear_allocator.a
+	gcc -g -o array_list_test array_list_test.o array_list.a linear_allocator.a
+#--- 
+
 #--- stack
 stack.o: stack.c stack.h
 	gcc -g -c stack.c -o stack.o
@@ -62,7 +73,7 @@ integ_test: integ_test.o integ.a
 	gcc -g -o integ_test integ_test.o integ.a -lm
 #---
 
-test: integ_test list_test stack_test linear_allocator_test pool_allocator_test
+test: integ_test list_test stack_test linear_allocator_test pool_allocator_test array_list_test
 	@for test in $(shell find . -maxdepth 1 -type f -regex '.*_test$$'); do \
 		echo "$$test"; \
 		./$$test || exit 1; \
