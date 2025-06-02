@@ -1,31 +1,39 @@
 #include "stack.h"
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 
 void push_test() {
-  int *st = stack();
-  push(st, 777);
-  push(st, 123);
-  assert(contain(st) == 1);
+  Stack st = stack();
+  push(&st, 777);
+  push(&st, 123);
+  assert(contain(&st) == 1);
+  free(st.data);
 }
 
 void pop_test() {
-  int *st = stack();
-  push(st, 777);
-  push(st, 123);
-  assert(pop(st) == 123 && pop(st) == 777 && contain(st) == 0);
+  Stack st = stack();
+  push(&st, 777);
+  push(&st, 123);
+  assert(pop(&st) == 123);
+  assert(pop(&st) == 777);
+  assert(contain(&st) == 0);
+  free(st.data);
 }
 
 void empty_pop_test() {
-  int *st = stack();
-  assert(pop(st) == 0);
+  Stack st = stack();
+  assert(pop(&st) == 0);
+  free(st.data);
 }
 
 void contain_test() {
-  int *st = stack();
-  assert(contain(st) == 0);
-  push(st, 3);
-  assert(contain(st) == 1);
+  Stack st = stack();
+  assert(contain(&st) == 0);
+  push(&st, 3);
+  assert(contain(&st) == 1);
+  free(st.data);
 }
 
 int main() {

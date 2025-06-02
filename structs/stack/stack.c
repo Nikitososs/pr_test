@@ -2,31 +2,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int *stack() {
-  int *stack = malloc(sizeof(int));
-  stack[0] = 0;
+Stack stack() {
+  Stack stack ={
+    .size = 0,
+    .data = NULL,
+    .top = 0
+  };
   return stack;
 }
 
-int push(int *stack, int value) {
-  stack = realloc(stack, sizeof(stack) + sizeof(int));
-  stack[0] = stack[0] + 1;
-  stack[stack[0]] = value;
-  return 0;
-}
-
-int contain(int *stack) {
-  if (stack[0] == 0)
+int push(Stack *stack, int value) {
+    stack->size += 1;
+    stack->data = realloc(stack->data, stack->size * sizeof(int));
+    stack->data[stack->top] = value;
+    stack->top += 1;
     return 0;
-  return 1;
 }
 
-int pop(int *stack) {
-  if (contain(stack)) {
-    int result = stack[stack[0]];
-    stack = realloc(stack, sizeof(stack) - 1);
-    stack[0] = stack[0] - 1;
-    return result;
-  }
-  return 0;
+int contain(Stack *stack) {
+  return stack->top > 0;
+}
+
+int pop(Stack *stack) {
+    if (stack->top == 0) return 0;
+    stack->top -= 1;
+    int value = stack->data[stack->top];
+    stack->size -= 1;
+    stack->data = realloc(stack->data, stack->size * sizeof(int));
+    return value;
+}
+
+void stack_free(Stack *stack) {
+  free(stack->data);
+  free(stack);
+  stack = NULL;
 }
