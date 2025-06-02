@@ -42,6 +42,7 @@ void test_pool_free() {
   Block *fourth_block = pool_alloc(pool);
 
   assert(third_block == second_block && fourth_block == second_block);
+  pool_dest(pool);
 }
 
 void test_pool_data() {
@@ -56,6 +57,7 @@ void test_pool_data() {
   *second_number = 999;
 
   assert(*first_number == 777 && *second_number == 999);
+  pool_dest(pool);
 }
 
 int main() {
