@@ -16,3 +16,6 @@ jobs:
 
       - name: Test
         run: make test
+
+      - name: MemoryTest
+        run: make mem_test
