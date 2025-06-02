@@ -1,6 +1,6 @@
+#include "../../allocators/linear_allocator/linear_allocator.h"
+#include "../../allocators/pool_allocator/pool_allocator.h"
 #include "hash_table.h"
-#include "linear_allocator.h"
-#include "pool_allocator.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>

@@ -1,4 +1,4 @@
-#include "linear_allocator.h"
+#include "../../allocators/linear_allocator/linear_allocator.h"
 #include <stddef.h>
 
 typedef struct {
