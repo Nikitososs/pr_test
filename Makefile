@@ -22,5 +22,6 @@ test:
 	
 mem_test: test
 	@for test in $(shell find . -maxdepth 3 -type f -regex '.*_test$$'); do \
-		valgrind --leak-check=full ./$$test; \
+		valgrind --leak-check=full --show-leak-kinds=all \
+		         --track-origins=yes --error-exitcode=1 ./$$test; \
 	done
