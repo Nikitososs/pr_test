@@ -7,14 +7,11 @@ check_fmt:
 fmt:
 	clang-format -style=LLVM -i `find -regex ".+\.[ch]"`
 
-#--- Pool allocator
+#--- Allocators
 pool_allocator.o: allocators/pool_allocator.c allocators/pool_allocator.h
 	gcc -g -c allocators/pool_allocator.c -o pool_allocator.o
 pool_allocator.a: pool_allocator.o
 	ar rc pool_allocator.a pool_allocator.o
-#--- 	
-
-#--- linear allocator
 linear_allocator.o: allocators/linear_allocator.c allocators/linear_allocator.h
 	gcc -g -c allocators/linear_allocator.c -o linear_allocator.o
 linear_allocator.a: linear_allocator.o
