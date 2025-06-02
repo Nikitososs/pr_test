@@ -7,6 +7,17 @@ check_fmt:
 fmt:
 	clang-format -style=LLVM -i `find -regex ".+\.[ch]"`
 
+#--- Hash table
+hash_table.o: hash_table.c hash_table.h
+	gcc -g -c hash_table.c -o hash_table.o
+hash_table.a: hash_table.o
+	ar rc hash_table.a hash_table.o
+hash_table_test.o: hash_table_test.c
+	gcc -g -c hash_table_test.c -o hash_table_test.o
+hash_table_test: hash_table_test.o hash_table.a pool_allocator.a linear_allocator.a
+	gcc -g -o hash_table_test hash_table_test.o hash_table.a pool_allocator.a linear_allocator.a
+#---
+
 #--- Pool allocator
 pool_allocator.o: pool_allocator.c pool_allocator.h
 	gcc -g -c pool_allocator.c -o pool_allocator.o
@@ -73,7 +84,7 @@ integ_test: integ_test.o integ.a
 	gcc -g -o integ_test integ_test.o integ.a -lm
 #---
 
-test: integ_test list_test stack_test linear_allocator_test pool_allocator_test array_list_test
+test: integ_test list_test stack_test linear_allocator_test pool_allocator_test array_list_test hash_table_test
 	@for test in $(shell find . -maxdepth 1 -type f -regex '.*_test$$'); do \
 		echo "$$test"; \
 		./$$test || exit 1; \
